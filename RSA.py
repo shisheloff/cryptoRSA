@@ -17,6 +17,19 @@ first_primes_list = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
                      307, 311, 313, 317, 331, 337, 347, 349]
 
 
+def extended_gcd(a, b):
+    if a == 0:
+        return b, 0, 1
+
+    gcd, x1, y1 = extended_gcd(b % a, a)
+
+    # Update x and y using results of recursive
+    # call
+    x = y1 - (b // a) * x1
+    y = x1
+    return gcd, x, y
+
+
 def nBitRandom(n):
     return random.randrange(2 ** (n - 1) + 1, 2 ** n - 1)
 
@@ -68,3 +81,20 @@ def getKey():
     secondPrimeNum = getPrimeNumber()
     n = firstPrimeNum * secondPrimeNum
     phi = (firstPrimeNum - 1) * (secondPrimeNum - 1)
+    e = 65537
+    _, _, d = extended_gcd(e, phi)
+    while d < 0:
+        d += phi
+    publicKey = [e, n]
+    privateKey = [d, n]
+    pk = open('pk', 'w')
+    for i in publicKey:
+        pk.write("%s\n" % i)
+    pb = open('pb', 'w')
+    for i in privateKey:
+        pb.write("%s\n" % i)
+    pk.close()
+    pb.close()
+
+
+getKey()
