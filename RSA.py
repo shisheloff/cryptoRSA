@@ -1,10 +1,10 @@
+import hashlib
 import random
 
 # def encrypt(message or File):
 # def decrypt(message or File):
 # def sign(File):
 # def verify(File):
-# def isPrime(num):
 
 first_primes_list = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
                      31, 37, 41, 43, 47, 53, 59, 61, 67,
@@ -18,16 +18,30 @@ first_primes_list = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
 
 
 def extended_gcd(a, b):
-    if a == 0:
-        return b, 0, 1
+    y, x = (1, 0)
+    real, imagine = (1, 0)
+    a_start, b_start = a, b
 
-    gcd, x1, y1 = extended_gcd(b % a, a)
+    while b:
+        q = a // b
+        a, b = b, (a % b)
 
-    # Update x and y using results of recursive
-    # call
-    x = y1 - (b // a) * x1
-    y = x1
-    return gcd, x, y
+        real, x = x, (real - (q * x))
+        imagine, y = y, (imagine - (q * y))
+
+    if real < 0:
+        real += b_start
+    if imagine < 0:
+        imagine += a_start
+    return real, imagine, a
+
+
+def find_d(e, p, q):
+    x = extended_gcd(e, ((p - 1) * (q - 1)))
+    if x[2] == 1:
+        return x[1] % ((p - 1) * (q - 1))
+    else:
+        return "Pick for e not valid"
 
 
 def nBitRandom(n):
@@ -82,7 +96,7 @@ def getKey():
     n = firstPrimeNum * secondPrimeNum
     phi = (firstPrimeNum - 1) * (secondPrimeNum - 1)
     e = 65537
-    _, _, d = extended_gcd(e, phi)
+    d = find_d(e, firstPrimeNum, secondPrimeNum)
     while d < 0:
         d += phi
     publicKey = [e, n]
@@ -97,4 +111,11 @@ def getKey():
     pb.close()
 
 
-getKey()
+def hexToInt(x):
+    return eval("0x" + x)
+
+
+def encrypt(msg, publicKeyFile):
+    pk = open(publicKeyFile, 'r')                                          # открытие файла с октрытым ключом
+    msg = hashlib.sha256(msg.encode('utf-8')).hexdigest().upper() # получение хеша сообщения
+    msg = hexToInt(msg)
